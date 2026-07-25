@@ -2,74 +2,211 @@
 
 :root {
   color-scheme: dark;
-  font-family:
-    "Inter", system-ui, -apple-system, sans-serif;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: #0A0A0B;
+  color: #F5F5F5;
 
-  background: #09090B;
-  color: #ffffff;
+  /* Surface Hierarchy (Dark Theme) */
+  --bg: #0A0A0B;               /* Level 0: Application Background */
+  --page: #0F1012;             /* Level 1: Scrollable Page Section */
+  --app: #0F1012;
+  --surface: #17181C;          /* Level 2: Card Surface & Nav Container */
+  --surface-soft: #17181C;
+  --surface-elevated: #202227; /* Level 3: Input Surface */
+  --surface-control: #292C33;  /* Level 4: Interactive Controls */
+  --surface-hover: #292C33;
+  --surface-pressed: #333740;  /* Level 5: Pressed State */
 
-  /* Background hierarchy */
-  --bg: #09090B;           /* Page background */
-  --app: #09090B;
-
-  /* Containers */
-  --surface: #18181B;      /* Timer card */
-  --surface-soft: #27272A; /* Buttons, tabs */
-  --surface-hover: #3F3F46;/* Hover and active states */
+  /* Hairlines & Dividers */
+  --divider: #282B30;
+  --hairline: #1F2126;
+  --line: #1F2126;
+  --ring-line: #282B30;
 
   /* Text */
-  --text: #FAFAFA;
-  --muted: #A1A1AA;
+  --text: #F5F5F5;
+  --text-2: #C1C5CC;
+  --muted: #8A9099;
 
-  /* Borders */
-  --line: #3F3F46;
-  --ring-line: #4B4B50;
+  /* Buttons */
+  --btn-primary-bg: #F5F5F5;
+  --btn-primary-text: #111111;
 
-  /* Accent */
-  --accent: #27272A;
-  --accent-strong: #FFFFFF;
-  --accent-text: #09090B;
+  /* Tonal Scales - Primary Blue (#0052FF) */
+  --blue-50:  #E6EDFF;
+  --blue-100: #CCD9FF;
+  --blue-300: #6694FF;
+  --blue-500: #0052FF;
+  --blue-700: #003EC2;
 
-  /* Effects */
-  --shadow: none;
+  /* Tonal Scales - Green */
+  --green-50: #E6F4EA;
+  --green-100: #CEEAD6;
+  --green-300: #81C995;
+  --green-500: #34A853;
+  --green-700: #188038;
+
+  /* Tonal Scales - Yellow */
+  --yellow-50: #FEF7E0;
+  --yellow-100: #FDE293;
+  --yellow-300: #FBC02D;
+  --yellow-500: #FBBC05;
+  --yellow-700: #F29900;
+
+  /* Tonal Scales - Red */
+  --red-50: #FCE8E6;
+  --red-100: #FAD2CF;
+  --red-300: #F28B82;
+  --red-500: #EA4335;
+  --red-700: #C5221F;
+
+  /* Accent & Semantic */
+  --accent: #0052FF;
+  --accent-strong: #0052FF;
+  --accent-subtle: rgba(0, 82, 255, 0.15);
+  --accent-text: #FFFFFF;
+
+  --success: #34A853;
+  --warning: #FBBC05;
+  --error: #EA4335;
+
+  /* Badges */
+  --badge-high-bg: rgba(234, 67, 53, 0.15);
+  --badge-high-text: #F28B82;
+  --badge-medium-bg: rgba(251, 188, 5, 0.15);
+  --badge-medium-text: #FDE293;
+  --badge-low-bg: rgba(52, 168, 83, 0.15);
+  --badge-low-text: #81C995;
+
+  /* Heatmap (Dark) */
+  --heatmap-0: #202227;
+  --heatmap-1: rgba(0, 82, 255, 0.22);
+  --heatmap-2: #6694FF;
+  --heatmap-3: #0052FF;
+  --heatmap-4: #003EC2;
+
+  --shadow: rgba(0,0,0,.45);
+  --bottom-nav-height: 60px;
 }
+
 :root[data-theme='light'] {
   color-scheme: light;
+  background: #F3F4F6;
+  color: #18181B;
 
-  /* Background hierarchy */
-  --bg: #FFFFFF;           /* Page background */
-  --app: #FFFFFF;
+  /* Surface Hierarchy (Light Theme) */
+  --bg: #F3F4F6;               /* Level 0: Application Background */
+  --page: #F7F8FA;             /* Level 1: Scrollable Page Section */
+  --app: #F7F8FA;
+  --surface: #FFFFFF;          /* Level 2: Card Surface & Nav Container */
+  --surface-soft: #FFFFFF;
+  --surface-elevated: #F1F3F6; /* Level 3: Input Surface */
+  --surface-control: #E4E8EE;  /* Level 4: Interactive Controls */
+  --surface-hover: #E4E8EE;
+  --surface-pressed: #D4D9E2;  /* Level 5: Pressed State */
 
-  --surface: #F8F8F8;      /* Timer container */
-  --surface-soft: #F1F1F1; /* Buttons and tabs */
-  --surface-hover: #E4E4E7;/* Hover and active */
+  /* Hairlines & Dividers */
+  --divider: #E4E7EB;
+  --hairline: #ECEFF3;
+  --line: #ECEFF3;
+  --ring-line: #E4E7EB;
 
   /* Text */
   --text: #18181B;
-  --muted: #71717A;
+  --text-2: #5F6368;
+  --muted: #9AA0A6;
 
-  /* Borders */
-  --line: #E4E4E7;
-  --ring-line: #D4D4D8;
+  /* Buttons */
+  --btn-primary-bg: #18181B;
+  --btn-primary-text: #FFFFFF;
 
-  /* Accent */
-  --accent: #F1F1F1;
-  --accent-strong: #18181B;
+  /* Accent & Semantic */
+  --accent: #0052FF;
+  --accent-strong: #0052FF;
+  --accent-subtle: rgba(0, 82, 255, 0.08);
   --accent-text: #FFFFFF;
 
-  /* Effects */
-  --shadow: none;
+  --success: #34A853;
+  --warning: #FBBC05;
+  --error: #EA4335;
+
+  /* Badges */
+  --badge-high-bg: #FCE8E6;
+  --badge-high-text: #C5221F;
+  --badge-medium-bg: #FEF7E0;
+  --badge-medium-text: #F29900;
+  --badge-low-bg: #E6F4EA;
+  --badge-low-text: #188038;
+
+  /* Heatmap (Light) */
+  --heatmap-0: #ECEFF3;
+  --heatmap-1: #CCD9FF;
+  --heatmap-2: #6694FF;
+  --heatmap-3: #0052FF;
+  --heatmap-4: #003EC2;
+
+  --shadow: rgba(15,23,42,.04);
 }
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ── Scrollbars ────────────────────────────────────────────────────── */
+/* Firefox */
 * {
-  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Chromium / Safari — vertical */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Heatmap horizontal scrollbar — extra lightweight */
+.heatmap-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.heatmap-container::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--line) 60%, transparent);
+  border-radius: 9999px;
+}
+
+.heatmap-container::-webkit-scrollbar-thumb:hover {
+  background: var(--line);
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background: var(--bg);
+  /* Desktop: slightly different from app bg so the shell reads as a container */
+  background: var(--surface);
   color: var(--text);
+  overscroll-behavior: none;
 }
 
 button {
@@ -77,66 +214,49 @@ button {
   font: inherit;
 }
 
+/* ── App shell ──────────────────────────────────────────────────────────── */
+/*
+   The app shell is a fixed-height centered column.
+   - .tab-content grows and scrolls independently
+   - .bottom-nav is a natural flex child at the bottom
+   This means the nav always matches the shell width — no fixed hacks.
+*/
 .app {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  padding: 32px 16px;
-  gap: 32px;
+  /* Exact viewport height — the shell never taller than the screen */
+  height: 100vh;
+  height: 100dvh;
+  /* Comfortable reading width: min 360px, preferred 600px, max 680px */
+  width: 100%;
+  max-width: 680px;
+  min-width: 360px;
+  margin: 0 auto;
+  background: var(--page);
+  /* Hairline side divider visible on desktop */
+  border-left: 1px solid var(--hairline);
+  border-right: 1px solid var(--hairline);
 }
 
+/* ── App bar ────────────────────────────────────────────────────────────── */
 .app-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px 20px 0;
   width: 100%;
-  max-width: 600px;
-  padding: 0;
-  border: none;
-  background: transparent;
 }
 
-.brand {
-  font-size: 1.5rem;
-  font-weight: 500;
+.app-bar-brand {
+  display: flex;
+  align-items: center;
+}
+
+.app-bar-title {
+  font-size: 1.25rem;
+  font-weight: 700;
   color: var(--text);
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-}
-
-.brand svg {
-  color: var(--accent-strong);
-}
-
-.navbar-controls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.nav-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.nav-button.active {
-  background: var(--surface-soft);
-  color: var(--text);
+  letter-spacing: -0.02em;
 }
 
 .theme-button {
@@ -145,37 +265,106 @@ button {
   justify-content: center;
   padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid var(--line);
-  background: transparent;
+  border: none;
+  background: var(--surface-control);
   color: var(--muted);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.timer-shell {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  width: 100%;
-  max-width: 600px;
+.theme-button:hover {
+  background: var(--surface-pressed);
+  color: var(--text);
 }
 
-.pomodoro-card,
-.stopwatch-card {
+/* ── Tab content area ───────────────────────────────────────────────────── */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* Prevent scroll bleeding out to body */
+  overscroll-behavior-y: contain;
+}
+
+.tab-panel {
+  display: none;
+  padding: 24px 20px 32px;
+  width: 100%;
+}
+
+.tab-panel.visible {
+  display: block;
+}
+
+/* ── Bottom navigation ──────────────────────────────────────────────────── */
+/*
+   No position:fixed. The nav is a natural flex child of .app,
+   so it automatically matches the shell width.
+   Safe-area padding handles notched devices.
+*/
+.bottom-nav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: stretch;
+  height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* Translucent frosted surface — native tab bar feel */
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  /*border-top: 1px solid var(--hairline);*/
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  border: none;
+  /* Touch target */
+  padding: 10px 0 8px;
+  transition: color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent text selection on rapid taps */
+  user-select: none;
+}
+
+.bottom-nav-item.active {
+  color: var(--accent);
+}
+
+.bottom-nav-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Pomodoro tab ───────────────────────────────────────────────────────── */
+.pomodoro-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pomodoro-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  border-radius: 8px;
-  background: var(--surface-soft);
+  border-radius: 12px;
+  background: var(--surface);
   padding: 40px 32px;
   gap: 32px;
   position: relative;
   overflow: hidden;
-}
-
-.bi-clock-fill {
-  color: color-mix(in srgb, var(--app) 55%, transparent);
+  box-shadow: 0 1px 3px var(--shadow);
 }
 
 .phase-tabs {
@@ -183,7 +372,7 @@ button {
   gap: 6px;
   padding: 4px;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--app) 55%, transparent);
+  background: var(--surface-elevated);
 }
 
 .phase-tabs button {
@@ -192,121 +381,29 @@ button {
   padding: 0 12px;
   border-radius: 8px;
   background: transparent;
-  color: var(--text);
+  color: var(--muted);
   cursor: pointer;
   font-weight: 500;
   font-size: 0.835rem;
+  transition: all 0.2s ease;
 }
 
 .phase-tabs button.active {
-  background: color-mix(in srgb, var(--text) 12%, transparent);
-}
-
-.active-task-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  background: color-mix(in srgb, var(--surface-hover) 30%, transparent);
-  padding: 12px 24px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  margin-bottom: -16px;
-}
-
-.active-task-title {
-  font-size: 0.875rem;
-  color: var(--muted);
-}
-.active-task-title span {
+  background: var(--surface-pressed);
   color: var(--text);
-  font-weight: 600;
-  text-transform: capitalize;
 }
 
-.completion-prompt-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: color-mix(in srgb, var(--surface) 90%, transparent);
-  border-radius: 8px;
+.pomodoro-time {
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 10;
-  padding: 24px;
-}
-.completion-prompt {
-  background: var(--surface-hover);
-  border: 1px solid var(--line);
-  padding: 24px;
-  border-radius: 12px;
-  text-align: center;
-  max-width: 320px;
-}
-.completion-prompt h3 {
-  margin: 0 0 12px 0;
-  color: var(--text);
-  font-size: 1.125rem;
-}
-.completion-prompt p {
-  margin: 0 0 24px 0;
-  color: var(--muted);
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-.completion-prompt strong {
-  color: var(--text);
-  text-transform: capitalize;
-}
-.completion-prompt-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.completion-prompt-actions button {
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
-}
-.completion-prompt-actions button.primary {
-  background: var(--text);
-  color: var(--surface);
-}
-.completion-prompt-actions button.primary:hover {
-  opacity: 0.9;
-}
-.completion-prompt-actions button.secondary {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--line);
-}
-.completion-prompt-actions button.secondary:hover {
-  color: var(--text);
-  border-color: var(--muted);
-}
-.active-task-progress {
-  font-size: 0.875rem;
-  font-weight: 500;
-  display: flex;
   align-items: center;
-  gap: 8px;
-}
-.suggested-completion {
-  color: #22c55e;
-  font-weight: 600;
-  font-size: 0.75rem;
+  width: 100%;
 }
 
 .time-display {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
 }
 
 .time-part {
@@ -325,32 +422,14 @@ button {
   line-height: 1;
 }
 
-.stopwatch-card .time-part .val,
-.stopwatch-card .sep {
-  color: var(--text);
-  font-size: clamp(2.25rem, 7vw, 2.90rem);
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
-  line-height: 1;
-}
-
-.time-part .lbl {
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-}
-
-.sep {
-  margin: 0 4px;
-}
+.sep { margin: 0 4px; }
 
 .progress-line {
   width: 100%;
   height: 4px;
   overflow: hidden;
   border-radius: 8px;
-  background: var(--line);
+  background: var(--surface-elevated);
 }
 
 .progress-line::before {
@@ -358,7 +437,7 @@ button {
   width: var(--progress);
   height: 100%;
   border-radius: inherit;
-  background: var(--accent-strong);
+  background: var(--accent);
   content: "";
 }
 
@@ -374,21 +453,17 @@ button {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--line);
+  background: var(--surface-elevated);
   transition: all 0.3s ease;
 }
 
-.cycle-dot.completed {
-  background: var(--accent-strong);
-}
-
+.cycle-dot.completed { background: var(--accent); }
 .cycle-dot.active {
-  background: var(--accent-strong);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-strong) 20%, transparent);
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-.pomodoro-controls,
-.stopwatch-controls {
+.pomodoro-controls {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -405,8 +480,8 @@ button {
   min-height: 48px;
   min-width: 0;
   border-radius: 8px;
-  border: 1px solid var(--line);
-  background: color-mix(in srgb, var(--app) 55%, transparent);
+  border: none;
+  background: var(--surface-control);
   color: var(--text);
   cursor: pointer;
   font-weight: 500;
@@ -415,140 +490,436 @@ button {
 }
 
 .control-button:hover {
-  background: color-mix(in srgb, var(--surface-soft) 80%, #fff);
-
+  background: var(--surface-pressed);
 }
 
-.stopwatch-card {
-  /* same as combined rule above */
+.control-button:active {
+  background: var(--surface-pressed);
 }
 
-.stopwatch-ring {
+/* ── Current Task Panel — Card surface ───────────────────────────────────── */
+.current-task-panel {
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border: none;
+}
+
+.current-task-panel.empty {
+  opacity: 0.5;
+}
+
+.current-task-panel-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.current-task-panel-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: capitalize;
+  line-height: 1.3;
+}
+
+.current-task-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+
+.current-task-panel-empty {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0;
+}
+
+/* ── Completion / Switch dialogs ────────────────────────────────────────── */
+.completion-prompt-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  padding: 24px;
+}
+
+.completion-prompt {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  padding: 28px 24px;
+  border-radius: 12px;
+  text-align: center;
+  max-width: 320px;
+  width: 100%;
+}
+
+.completion-emoji {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.completion-prompt h3 {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 1.125rem;
+}
+
+.completion-prompt p {
+  margin: 0 0 24px;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.completion-prompt strong {
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.completion-prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.completion-prompt-actions button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.completion-prompt-actions button.primary {
+  background: var(--text);
+  color: var(--surface);
+}
+
+.completion-prompt-actions button.primary:hover { opacity: 0.9; }
+
+.completion-prompt-actions button.secondary {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.completion-prompt-actions button.secondary:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
+.suggested-completion {
+  color: var(--success);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+/* ── Streaks Screen — typography-first ──────────────────────────────────── */
+.streaks-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* 1. Today hero */
+.streaks-hero {
+  padding-top: 8px;
+}
+
+.streaks-hero-value {
+  /* Use a fixed-feeling size — vw is unreliable with a capped container */
+  font-size: clamp(3rem, 10vw, 5rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.streaks-hero-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* 2. Activity overview — inline row */
+.streaks-overview {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: none;
+}
+
+.streaks-overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  padding: 0 0 0 4px;
+}
+
+.streaks-overview-item:first-child {
+  padding-left: 0;
+}
+
+.streaks-overview-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+}
+
+.streaks-overview-label {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.streaks-overview-divider {
+  width: 1px;
+  background: var(--hairline);
+  margin: 2px 20px 2px;
+  flex-shrink: 0;
+  align-self: stretch;
+}
+
+/* 3. Heatmap section — no extra wrapper needed, ActivityHeatmap handles itself */
+.streaks-heatmap-section {
+  /* intentionally no extra styling — let the heatmap breathe */
+}
+
+/* 4 & 5. Vertical stat / monthly list */
+.streaks-stat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.streaks-list-heading {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.streaks-stat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--hairline);
+  gap: 12px;
+}
+
+.streaks-stat-row:last-child {
+  border-bottom: none;
+}
+
+.streaks-stat-label {
+  font-size: 0.9rem;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.streaks-stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.streaks-stat-value--secondary {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* ── Heatmap Card surface ────────────────────────────────────────────── */
+.activity-heatmap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 20px;
+  border-radius: 12px;
+  background: var(--surface);
+  gap: 10px;
+}
+
+.heatmap-header h3 {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.heatmap-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Month labels row — aligned to 14px cell + 4px gap columns */
+.heatmap-months {
+  display: grid;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  width: 100%;
+  overflow: hidden;
+}
+
+.heatmap-grid {
+  display: flex;
+  gap: 4px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.heatmap-week {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Heatmap cells — generous 14px size for scanning at a glance */
+.heatmap-day {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  transition: opacity 0.15s ease;
+  cursor: pointer;
   position: relative;
+  flex-shrink: 0;
+}
+
+.heatmap-day:hover { opacity: 0.75; }
+
+/* Tonal GitHub-inspired intensity scale */
+.heatmap-day.level-0 { background: var(--heatmap-0); }
+.heatmap-day.level-1 { background: var(--heatmap-1); }
+.heatmap-day.level-2 { background: var(--heatmap-2); }
+.heatmap-day.level-3 { background: var(--heatmap-3); }
+.heatmap-day.level-4 { background: var(--heatmap-4); }
+
+/* Today — subtle 1.5px outline ring */
+.heatmap-day.today {
+  outline: 1.5px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+.heatmap-legend {
   display: flex;
-  justify-content: center;
   align-items: center;
-  width: 100%;
-  max-width: 380px;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: transparent;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  align-self: flex-end;
+  opacity: 0.85;
 }
 
-.ring-svg {
+.heatmap-legend span { margin: 0 4px; }
+
+/* ── Hover tooltip on heatmap days ─────────────────────────────────────── */
+.heatmap-day::after {
+  content: attr(data-tooltip);
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: pre;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 0.7rem;
+  padding: 6px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease;
+  z-index: 50;
+  line-height: 1.5;
+  text-align: center;
 }
 
-.ring-track,
-.ring-progress {
-  fill: none;
-  stroke-width: 4;
+.heatmap-day:hover::after {
+  opacity: 1;
+  visibility: visible;
 }
 
-.ring-track {
-  stroke: var(--ring-line);
-}
-
-.ring-progress {
-  stroke: var(--accent-strong);
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: center;
-  transition: stroke-dashoffset 10ms linear;
-}
-
-.ring-marker {
-  fill: var(--text);
-  transition:
-    cx 10ms linear,
-    cy 10ms linear;
-}
-
-.ring-inner {
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.brand:hover,
+/* ── Focus / hover helpers ──────────────────────────────────────────────── */
 .theme-button:hover,
-.nav-button:hover,
 .phase-tabs button:hover,
 .control-button:hover {
   filter: brightness(1.08);
 }
 
-.brand:focus-visible,
 .theme-button:focus-visible,
-.nav-button:focus-visible,
 .phase-tabs button:focus-visible,
-.control-button:focus-visible {
-  outline: 2px solid var(--accent-strong);
+.control-button:focus-visible,
+.bottom-nav-item:focus-visible {
+  outline: 2px solid var(--accent);
   outline-offset: 3px;
 }
 
-@media (max-width: 640px) {
-  .app {
-    padding: 12px;
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+/*
+   Since the app shell is already capped, breakpoints only affect
+   spacing — not layout structure.
+*/
+@media (max-width: 480px) {
+  .tab-panel {
+    padding: 20px 16px 28px;
   }
 
-  .app-bar {
-    grid-template-columns: 1fr auto;
-    gap: 12px;
-    padding: 0;
+  .pomodoro-card {
+    padding: 28px 16px;
+    gap: 24px;
   }
 
-  .brand {
-      font-size: 1rem;
-
-    padding-left: 4px;
-  }
-
-  .navbar-controls {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-  }
-
-  .nav-button {
-    min-width: 0;
-    flex: 1;
-  }
-
-  .timer-shell {
-    padding-top: 16px;
-  }
-
-  .pomodoro-card,
-  .stopwatch-card {
-    width: 100%;
-    padding: 32px 16px;
-  }
-
-  .pomodoro-controls,
-  .stopwatch-controls {
+  .pomodoro-controls {
     flex-direction: column;
     gap: 12px;
   }
 
-  .control-button {
-    width: 100%;
-  }
+  .control-button { width: 100%; }
 
-  .phase-tabs {
-    width: 100%;
-  }
-
-  .phase-tabs button {
-    min-width: 0;
-    flex: 1;
-  }
+  .phase-tabs { width: 100%; }
+  .phase-tabs button { min-width: 0; flex: 1; }
 }
