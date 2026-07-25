@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Task, Priority } from '../types';
 import { MoreVertical, Trash2, CheckCircle } from 'lucide-react';
-import TaskList from './TaskList';
+import DraggableTaskList from './DraggableTaskList';
 import AddTaskForm from './AddTaskForm';
 import CompletedTasksSection from './CompletedTasksSection';
 
@@ -61,20 +61,32 @@ interface TaskManagementProps {
   onTaskCompleted: (task: Task) => void;
   onSelectTask: (id: string) => void;
   onClearActiveTask: () => void;
+  onContribution?: () => void;
 }
 
-export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiveTaskId, onTaskCompleted, onSelectTask, onClearActiveTask }: TaskManagementProps) {
+export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiveTaskId, onTaskCompleted, onSelectTask, onClearActiveTask, onContribution }: TaskManagementProps) {
+
+  const getNextQueueOrder = () => {
+    const active = tasks.filter(t => !t.completed);
+    if (active.length === 0) return 0;
+    return Math.max(...active.map(t => t.queueOrder)) + 1;
+  };
 
   const addTask = (title: string, priority: Priority, estimatedPomodoros: number) => {
+    const now = new Date().toISOString();
     const newTask: Task = {
       id: Math.random().toString(36).substr(2, 9),
       title,
       priority,
       estimatedPomodoros,
       completedPomodoros: 0,
-      completed: false
+      completed: false,
+      status: 'idle',
+      queueOrder: getNextQueueOrder(),
+      createdAt: now,
+      updatedAt: now,
     };
-    setTasks([...tasks, newTask]);
+    setTasks(prev => [...prev, newTask]);
   };
 
   const toggleTaskCompleted = (id: string) => {
@@ -82,8 +94,21 @@ export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiv
     if (!task) return;
     
     const isCompleting = !task.completed;
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: isCompleting, remainingSeconds: isCompleting ? undefined : t.remainingSeconds } : t));
+    const now = new Date().toISOString();
+
+    setTasks(tasks.map(t => t.id === id ? {
+      ...t,
+      completed: isCompleting,
+      status: isCompleting ? 'completed' : 'idle',
+      completedAt: isCompleting ? now : undefined,
+      updatedAt: now,
+      remainingSeconds: isCompleting ? undefined : t.remainingSeconds,
+    } : t));
     
+    if (isCompleting && onContribution) {
+      onContribution();
+    }
+
     if (isCompleting && activeTaskId === id) {
       onTaskCompleted(task);
     } else if (activeTaskId === id) {
@@ -92,7 +117,7 @@ export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiv
   };
 
   const editTask = (id: string, updates: Partial<Task>) => {
-    setTasks(tasks.map(t => t.id === id ? { ...t, ...updates } : t));
+    setTasks(tasks.map(t => t.id === id ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t));
   };
 
   const deleteTask = (id: string) => {
@@ -107,14 +132,19 @@ export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiv
 
   const clearCompletedTasks = () => {
     setTasks(tasks.filter(t => !t.completed));
-    // Assuming active task is not completed, no need to reset
   };
 
-  const activeTasks = tasks.filter(t => !t.completed).sort((a, b) => {
-    const pMap: Record<Priority, number> = { high: 1, medium: 2, low: 3 };
-    return pMap[a.priority] - pMap[b.priority];
-  });
-  
+  const handleReorder = (reordered: Task[]) => {
+    // Merge reordered active tasks back into the full task array
+    const reorderedIds = new Set(reordered.map(t => t.id));
+    const rest = tasks.filter(t => !reorderedIds.has(t.id));
+    setTasks([...reordered, ...rest]);
+  };
+
+  const activeTasks = tasks
+    .filter(t => !t.completed)
+    .sort((a, b) => a.queueOrder - b.queueOrder);
+
   const completedTasks = tasks.filter(t => t.completed);
 
   return (
@@ -127,18 +157,28 @@ export default function TaskManagement({ tasks, setTasks, activeTaskId, setActiv
         <AddTaskForm onAdd={addTask} />
       </div>
 
-      {activeTasks.length > 0 && (
+      {activeTasks.length > 0 ? (
         <div className="task-section">
           <h3 className="task-section-title">Active Tasks</h3>
-          <TaskList 
-            tasks={activeTasks} 
-            onToggle={toggleTaskCompleted} 
-            onEdit={editTask} 
+          <DraggableTaskList
+            tasks={activeTasks}
+            onToggle={toggleTaskCompleted}
+            onEdit={editTask}
             onDelete={deleteTask}
             activeTaskId={activeTaskId}
             onSelectTask={onSelectTask}
+            onReorder={handleReorder}
+            draggable
           />
         </div>
+      ) : (
+        completedTasks.length === 0 && (
+          <div className="task-empty-state">
+            <div className="task-empty-icon">🍅</div>
+            <p className="task-empty-title">No tasks yet</p>
+            <p className="task-empty-sub">Add a task above to get started</p>
+          </div>
+        )
       )}
 
       <CompletedTasksSection tasks={completedTasks} onToggle={toggleTaskCompleted} onEdit={editTask} onDelete={deleteTask} />

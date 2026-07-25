@@ -9,9 +9,10 @@ interface Props {
   onDelete: (id: string) => void;
   isActive?: boolean;
   onSelect?: (id: string) => void;
+  queuePosition?: number;
 }
 
-export default function TaskItem({ task, onToggle, onEdit, onDelete, isActive, onSelect }: Props) {
+export default function TaskItem({ task, onToggle, onEdit, onDelete, isActive, onSelect, queuePosition }: Props) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
   const [editPomodoros, setEditPomodoros] = useState(task.estimatedPomodoros);
@@ -20,7 +21,8 @@ export default function TaskItem({ task, onToggle, onEdit, onDelete, isActive, o
     if (!editTitle.trim()) return;
     onEdit(task.id, {
       title: editTitle.trim(),
-      estimatedPomodoros: Math.max(task.completedPomodoros, editPomodoros)
+      estimatedPomodoros: Math.max(task.completedPomodoros, editPomodoros),
+      updatedAt: new Date().toISOString(),
     });
     setIsEditing(false);
   };
@@ -98,9 +100,14 @@ export default function TaskItem({ task, onToggle, onEdit, onDelete, isActive, o
       </button>
       
       <div className="task-item-content">
-        <span className="task-item-title">
-          {task.title}
-        </span>
+        <div className="task-item-title-row">
+          <span className="task-item-title">
+            {task.title}
+          </span>
+          {isActive && (
+            <span className="task-current-indicator">Current Task</span>
+          )}
+        </div>
         
         <div className="task-item-footer">
           <span className="emoji">🍅</span>
@@ -112,6 +119,9 @@ export default function TaskItem({ task, onToggle, onEdit, onDelete, isActive, o
               </span>
             ))}
           </div>
+          {queuePosition !== undefined && !task.completed && (
+            <span className="task-queue-position">#{queuePosition}</span>
+          )}
         </div>
       </div>
 
