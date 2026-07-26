@@ -217,8 +217,10 @@ button {
 }
 
 .app-bar-title {
-  font-size: 1.25rem;
-  font-weight: 700;
+  font-family: "Yatra One", system-ui;
+  font-weight: 400;
+  font-style: normal;
+  font-size: 1.65rem;
   color: var(--text);
   letter-spacing: -0.02em;
 }
