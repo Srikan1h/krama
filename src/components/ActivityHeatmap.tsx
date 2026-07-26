@@ -4,13 +4,26 @@ interface ActivityHeatmapProps {
   data: Record<string, number>;
 }
 
+interface TooltipInfo {
+  dateFormatted: string;
+  focusMin: number;
+  count: number;
+  top: number;
+  left?: number;
+  right?: number;
+  transform?: string;
+  positionBelow: boolean;
+}
+
 const CELL_SIZE = 14;
 const CELL_GAP = 4;
 const COLUMN_WIDTH = CELL_SIZE + CELL_GAP; // 18px per week column
 
 export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number>(0);
+  const [tooltip, setTooltip] = useState<TooltipInfo | null>(null);
 
   // Measure container width responsively with ResizeObserver
   useLayoutEffect(() => {
@@ -102,13 +115,6 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
     return 4;
   };
 
-  const getTodayStr = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
-
-  const todayStr = getTodayStr();
-
   const formatDateToolTip = (dateStr: string) => {
     const [y, m, d] = dateStr.split('-').map(Number);
     const dt = new Date(y, m - 1, d);
@@ -116,8 +122,55 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
     return `${d} ${monthStr}`;
   };
 
+  const handleCellHover = (
+    e: React.MouseEvent<HTMLDivElement> | React.FocusEvent<HTMLDivElement>,
+    day: { date: string; count: number }
+  ) => {
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    const cardRect = cardEl.getBoundingClientRect();
+    const cellRect = e.currentTarget.getBoundingClientRect();
+
+    const relTop = cellRect.top - cardRect.top;
+    const relLeft = cellRect.left - cardRect.left;
+    const relRight = cardRect.right - cellRect.right;
+
+    // Flip below if cell is near top edge (top row cells)
+    const positionBelow = relTop < 60;
+    const top = positionBelow ? relTop + cellRect.height + 6 : relTop - 6;
+
+    let left: number | undefined;
+    let right: number | undefined;
+    let transform: string | undefined;
+
+    if (relLeft < 60) {
+      left = Math.max(12, relLeft);
+    } else if (relRight < 60) {
+      right = Math.max(12, relRight);
+    } else {
+      left = relLeft + cellRect.width / 2;
+      transform = 'translateX(-50%)';
+    }
+
+    setTooltip({
+      dateFormatted: formatDateToolTip(day.date),
+      focusMin: day.count * 25,
+      count: day.count,
+      top,
+      left,
+      right,
+      transform,
+      positionBelow,
+    });
+  };
+
+  const handleCellLeave = () => {
+    setTooltip(null);
+  };
+
   return (
-    <div className="activity-heatmap">
+    <div className="activity-heatmap" ref={cardRef}>
       <div className="heatmap-header">
         <h3>Focus Activity</h3>
       </div>
@@ -136,17 +189,18 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
           {weeks.map((week, i) => (
             <div key={i} className="heatmap-week">
               {week.map((day) => {
-                const isToday = day.date === todayStr;
                 const focusMin = day.count * 25;
                 const dateFormatted = formatDateToolTip(day.date);
-                const pomodoroText = `${day.count} Pomodoro${day.count === 1 ? '' : 's'}`;
-                const tooltipText = `${dateFormatted}\n${focusMin} min focus\n${pomodoroText}`;
 
                 return (
                   <div
                     key={day.date}
-                    className={`heatmap-day level-${getColorLevel(day.count)}${isToday ? ' today' : ''}`}
-                    data-tooltip={tooltipText}
+                    tabIndex={0}
+                    className={`heatmap-day level-${getColorLevel(day.count)}`}
+                    onMouseEnter={(e) => handleCellHover(e, day)}
+                    onMouseLeave={handleCellLeave}
+                    onFocus={(e) => handleCellHover(e, day)}
+                    onBlur={handleCellLeave}
                     aria-label={`${dateFormatted}: ${day.count} pomodoro${day.count === 1 ? '' : 's'}, ${focusMin}min focus`}
                   />
                 );
@@ -164,6 +218,28 @@ export default function ActivityHeatmap({ data }: ActivityHeatmapProps) {
         <div className="heatmap-day level-4" />
         <span>More</span>
       </div>
+
+      {tooltip && (
+        <div
+          className="heatmap-tooltip"
+          style={{
+            top: tooltip.top,
+            left: tooltip.left !== undefined ? tooltip.left : 'auto',
+            right: tooltip.right !== undefined ? tooltip.right : 'auto',
+            transform: tooltip.transform
+              ? `${tooltip.transform} ${tooltip.positionBelow ? '' : 'translateY(-100%)'}`.trim()
+              : tooltip.positionBelow
+              ? 'none'
+              : 'translateY(-100%)',
+          }}
+        >
+          <div className="heatmap-tooltip-date">{tooltip.dateFormatted}</div>
+          <div className="heatmap-tooltip-min">{tooltip.focusMin} min focus</div>
+          <div className="heatmap-tooltip-count">
+            {tooltip.count} Pomodoro{tooltip.count === 1 ? '' : 's'}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

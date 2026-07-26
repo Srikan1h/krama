@@ -207,7 +207,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 13px 16px 0px;
+  padding: 18px 20px 0px;
   width: 100%;
 }
 
@@ -738,6 +738,7 @@ button {
   border-radius: 12px;
   background: var(--surface);
   gap: 10px;
+  position: relative;
 }
 
 .heatmap-header h3 {
@@ -791,9 +792,17 @@ button {
   cursor: pointer;
   position: relative;
   flex-shrink: 0;
+  border: none;
+  outline: none;
 }
 
 .heatmap-day:hover { opacity: 0.75; }
+
+/* Explicit focus state for keyboard accessibility */
+.heatmap-day:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
 
 /* Tonal GitHub-inspired intensity scale */
 .heatmap-day.level-0 { background: var(--heatmap-0); }
@@ -801,13 +810,6 @@ button {
 .heatmap-day.level-2 { background: var(--heatmap-2); }
 .heatmap-day.level-3 { background: var(--heatmap-3); }
 .heatmap-day.level-4 { background: var(--heatmap-4); }
-
-/* Today — subtle 1.5px outline ring */
-.heatmap-day.today {
-  outline: 1.5px solid var(--accent);
-  outline-offset: 1px;
-  border-radius: 3px;
-}
 
 .heatmap-legend {
   display: flex;
@@ -821,32 +823,37 @@ button {
 
 .heatmap-legend span { margin: 0 4px; }
 
-/* ── Hover tooltip on heatmap days ─────────────────────────────────────── */
-.heatmap-day::after {
-  content: attr(data-tooltip);
+/* ── Tooltip overlay on heatmap ───────────────────────────────────────── */
+.heatmap-tooltip {
   position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: pre;
-  background: var(--surface-soft);
-  border: 1px solid var(--line);
-  color: var(--text);
-  font-size: 0.7rem;
-  padding: 6px 8px;
-  border-radius: 6px;
+  z-index: 100;
   pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.15s ease;
-  z-index: 50;
-  line-height: 1.5;
+  background: var(--surface-elevated);
+  border: 1px solid var(--divider);
+  color: var(--text);
+  font-size: 0.75rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px var(--shadow);
+  line-height: 1.4;
   text-align: center;
+  transition: opacity 0.12s ease;
 }
 
-.heatmap-day:hover::after {
-  opacity: 1;
-  visibility: visible;
+.heatmap-tooltip-date {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.heatmap-tooltip-min {
+  font-size: 0.7rem;
+  color: var(--text-2);
+}
+
+.heatmap-tooltip-count {
+  font-size: 0.7rem;
+  color: var(--muted);
 }
 
 /* ── Focus / hover helpers ──────────────────────────────────────────────── */
