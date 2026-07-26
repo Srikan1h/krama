@@ -46,12 +46,12 @@
   --badge-low-bg: rgba(255, 255, 255, 0.05);
   --badge-low-text: #8A9099;
 
-  /* Heatmap (Dark) */
+  /* Heatmap Activity Levels (Green - Dark Theme) */
   --heatmap-0: #202227;
-  --heatmap-1: rgba(0, 82, 255, 0.22);
-  --heatmap-2: #6694FF;
-  --heatmap-3: #0052FF;
-  --heatmap-4: #003EC2;
+  --heatmap-1: #0E4429;
+  --heatmap-2: #006D32;
+  --heatmap-3: #26A641;
+  --heatmap-4: #39D353;
 
   --shadow: rgba(0,0,0,.45);
   --bottom-nav-height: 60px;
@@ -102,12 +102,12 @@
   --badge-low-bg: rgba(24, 24, 27, 0.04);
   --badge-low-text: #6B7280;
 
-  /* Heatmap (Light) */
+  /* Heatmap Activity Levels (Green - Light Theme) */
   --heatmap-0: #ECEFF3;
-  --heatmap-1: #CCD9FF;
-  --heatmap-2: #6694FF;
-  --heatmap-3: #0052FF;
-  --heatmap-4: #003EC2;
+  --heatmap-1: #9BE9A8;
+  --heatmap-2: #40C463;
+  --heatmap-3: #30A14E;
+  --heatmap-4: #216E39;
 
   --shadow: rgba(15,23,42,.04);
 }
@@ -750,7 +750,7 @@ button {
 .heatmap-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
   overflow: hidden;
 }
