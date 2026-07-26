@@ -337,7 +337,7 @@ button {
   display: inline-flex;
   gap: 6px;
   padding: 4px;
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--surface-elevated);
 }
 
