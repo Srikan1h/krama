@@ -434,18 +434,18 @@
 }
 
 .task-priority-badge.high {
-  background: var(--badge-high-bg);
-  color: var(--badge-high-text);
+  background: var(--badge-medium-bg);
+  color: #ea4335;
 }
 
 .task-priority-badge.medium {
   background: var(--badge-medium-bg);
-  color: var(--badge-medium-text);
+  color: #fbbc05;
 }
 
 .task-priority-badge.low {
-  background: var(--badge-low-bg);
-  color: var(--badge-low-text);
+  background: var(--badge-medium-bg);
+  color: var(--heatmap-4);
 }
 
 /* ── Task actions ───────────────────────────────────────────────────────── */
