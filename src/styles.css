@@ -32,51 +32,19 @@
   --btn-primary-bg: #F5F5F5;
   --btn-primary-text: #111111;
 
-  /* Tonal Scales - Primary Blue (#0052FF) */
-  --blue-50:  #E6EDFF;
-  --blue-100: #CCD9FF;
-  --blue-300: #6694FF;
-  --blue-500: #0052FF;
-  --blue-700: #003EC2;
+  /* Accent & Semantic (Monochrome Dark) */
+  --accent: #F5F5F5;
+  --accent-strong: #FFFFFF;
+  --accent-subtle: rgba(245, 245, 245, 0.15);
+  --accent-text: #0A0A0B;
 
-  /* Tonal Scales - Green */
-  --green-50: #E6F4EA;
-  --green-100: #CEEAD6;
-  --green-300: #81C995;
-  --green-500: #34A853;
-  --green-700: #188038;
-
-  /* Tonal Scales - Yellow */
-  --yellow-50: #FEF7E0;
-  --yellow-100: #FDE293;
-  --yellow-300: #FBC02D;
-  --yellow-500: #FBBC05;
-  --yellow-700: #F29900;
-
-  /* Tonal Scales - Red */
-  --red-50: #FCE8E6;
-  --red-100: #FAD2CF;
-  --red-300: #F28B82;
-  --red-500: #EA4335;
-  --red-700: #C5221F;
-
-  /* Accent & Semantic */
-  --accent: #0052FF;
-  --accent-strong: #0052FF;
-  --accent-subtle: rgba(0, 82, 255, 0.15);
-  --accent-text: #FFFFFF;
-
-  --success: #34A853;
-  --warning: #FBBC05;
-  --error: #EA4335;
-
-  /* Badges */
-  --badge-high-bg: rgba(234, 67, 53, 0.15);
-  --badge-high-text: #F28B82;
-  --badge-medium-bg: rgba(251, 188, 5, 0.15);
-  --badge-medium-text: #FDE293;
-  --badge-low-bg: rgba(52, 168, 83, 0.15);
-  --badge-low-text: #81C995;
+  /* Badges (Monochrome Dark) */
+  --badge-high-bg: rgba(255, 255, 255, 0.16);
+  --badge-high-text: #FFFFFF;
+  --badge-medium-bg: rgba(255, 255, 255, 0.10);
+  --badge-medium-text: #C1C5CC;
+  --badge-low-bg: rgba(255, 255, 255, 0.05);
+  --badge-low-text: #8A9099;
 
   /* Heatmap (Dark) */
   --heatmap-0: #202227;
@@ -114,29 +82,25 @@
   /* Text */
   --text: #18181B;
   --text-2: #5F6368;
-  --muted: #9AA0A6;
+  --muted: #787878;
 
   /* Buttons */
   --btn-primary-bg: #18181B;
   --btn-primary-text: #FFFFFF;
 
-  /* Accent & Semantic */
-  --accent: #0052FF;
-  --accent-strong: #0052FF;
-  --accent-subtle: rgba(0, 82, 255, 0.08);
+  /* Accent & Semantic (Monochrome Light) */
+  --accent: #18181B;
+  --accent-strong: #09090B;
+  --accent-subtle: rgba(24, 24, 27, 0.08);
   --accent-text: #FFFFFF;
 
-  --success: #34A853;
-  --warning: #FBBC05;
-  --error: #EA4335;
-
-  /* Badges */
-  --badge-high-bg: #FCE8E6;
-  --badge-high-text: #C5221F;
-  --badge-medium-bg: #FEF7E0;
-  --badge-medium-text: #F29900;
-  --badge-low-bg: #E6F4EA;
-  --badge-low-text: #188038;
+  /* Badges (Monochrome Light) */
+  --badge-high-bg: rgba(24, 24, 27, 0.12);
+  --badge-high-text: #18181B;
+  --badge-medium-bg: rgba(24, 24, 27, 0.07);
+  --badge-medium-text: #4B5563;
+  --badge-low-bg: rgba(24, 24, 27, 0.04);
+  --badge-low-text: #6B7280;
 
   /* Heatmap (Light) */
   --heatmap-0: #ECEFF3;
@@ -627,7 +591,7 @@ button {
 }
 
 .suggested-completion {
-  color: var(--success);
+  color: var(--text-2);
   font-weight: 600;
   font-size: 0.75rem;
 }

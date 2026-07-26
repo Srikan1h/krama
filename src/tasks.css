@@ -21,8 +21,8 @@
 }
 
 .task-header-title {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.25rem;
+  font-weight: 600;
   margin: 0;
   padding-left: 0;
 }
@@ -498,9 +498,9 @@
   font-size: 0.75rem;
 }
 
-.pomodoro-dot.high { color: var(--error); }
-.pomodoro-dot.medium { color: var(--warning); }
-.pomodoro-dot.low { color: var(--success); }
+.pomodoro-dot.high { color: var(--text); }
+.pomodoro-dot.medium { color: var(--text-2); }
+.pomodoro-dot.low { color: var(--muted); }
 
 /* Queue position badge */
 .task-queue-position {
@@ -588,8 +588,8 @@
 }
 
 .task-edit-btn.save {
-  color: var(--success);
-  background: var(--badge-low-bg);
+  color: var(--btn-primary-text);
+  background: var(--btn-primary-bg);
 }
 
 .task-edit-btn.save:hover { opacity: 0.85; }
