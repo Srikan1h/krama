@@ -55,6 +55,13 @@
 
   --shadow: rgba(0,0,0,.45);
   --bottom-nav-height: 60px;
+
+  /* ── Spacing Tokens ── */
+  --gutter-page: 20px;
+  --card-padding-x: 20px;
+  --card-padding-y: 20px;
+  --card-padding-compact-x: 16px;
+  --card-padding-compact-y: 16px;
 }
 
 :root[data-theme='light'] {
@@ -191,10 +198,10 @@ button {
   /* Exact viewport height — the shell never taller than the screen */
   height: 100vh;
   height: 100dvh;
-  /* Comfortable reading width: min 360px, preferred 600px, max 680px */
+  /* Comfortable reading width: min 320px, preferred 600px, max 680px */
   width: 100%;
   max-width: 680px;
-  min-width: 360px;
+  min-width: 320px;
   margin: 0 auto;
   background: var(--page);
   /* Hairline side divider visible on desktop */
@@ -207,7 +214,7 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 23px 20px 0px;
+  padding: 23px var(--gutter-page) 0px;
   width: 100%;
 }
 
@@ -255,7 +262,7 @@ button {
 
 .tab-panel {
   display: none;
-  padding: 24px 20px 32px;
+  padding: 24px var(--gutter-page) 32px;
   width: 100%;
 }
 
@@ -326,7 +333,7 @@ button {
   width: 100%;
   border-radius: 12px;
   background: var(--surface);
-  padding: 40px 32px;
+  padding: 40px var(--card-padding-x);
   gap: 32px;
   position: relative;
   overflow: hidden;
@@ -465,7 +472,7 @@ button {
 
 /* ── Current Task Panel — Card surface ───────────────────────────────────── */
 .current-task-panel {
-  padding: 20px;
+  padding: var(--card-padding-y) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
   display: flex;
@@ -632,7 +639,7 @@ button {
   display: flex;
   align-items: stretch;
   gap: 0;
-  padding: 20px;
+  padding: var(--card-padding-y) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
   border: none;
@@ -667,7 +674,7 @@ button {
 .streaks-overview-divider {
   width: 1px;
   background: var(--hairline);
-  margin: 2px 20px 2px;
+  margin: 2px var(--card-padding-compact-x) 2px;
   flex-shrink: 0;
   align-self: stretch;
 }
@@ -682,7 +689,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 20px;
+  padding: var(--card-padding-y) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
 }
@@ -734,7 +741,7 @@ button {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: 20px;
+  padding: var(--card-padding-y) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
   gap: 10px;
@@ -876,13 +883,43 @@ button {
    Since the app shell is already capped, breakpoints only affect
    spacing — not layout structure.
 */
+@media (min-width: 768px) {
+  :root {
+    --gutter-page: 24px;
+    --card-padding-x: 24px;
+    --card-padding-y: 24px;
+    --card-padding-compact-x: 18px;
+    --card-padding-compact-y: 16px;
+  }
+}
+
+@media (max-width: 479px) {
+  :root {
+    --gutter-page: 16px;
+    --card-padding-x: 16px;
+    --card-padding-y: 18px;
+    --card-padding-compact-x: 14px;
+    --card-padding-compact-y: 14px;
+  }
+}
+
+@media (max-width: 359px) {
+  :root {
+    --gutter-page: 12px;
+    --card-padding-x: 12px;
+    --card-padding-y: 16px;
+    --card-padding-compact-x: 10px;
+    --card-padding-compact-y: 12px;
+  }
+}
+
 @media (max-width: 480px) {
   .tab-panel {
-    padding: 20px 16px 28px;
+    padding: 20px var(--gutter-page) 28px;
   }
 
   .pomodoro-card {
-    padding: 28px 16px;
+    padding: 28px var(--card-padding-x);
     gap: 24px;
   }
 
