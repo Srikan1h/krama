@@ -6,13 +6,19 @@ import CurrentTaskPanel from './components/CurrentTaskPanel'
 import TaskCompletionModal from './components/TaskCompletionModal'
 import SwitchTaskDialog from './components/SwitchTaskDialog'
 import StreaksScreen from './components/StreaksScreen'
-import { Task } from './types'
+import { Task, PomodoroMode, PersistedTimerSession } from './types'
+import {
+  FOCUS_SECONDS,
+  SHORT_BREAK_SECONDS,
+  LONG_BREAK_SECONDS,
+  restoreTimerSession,
+  saveTimerSession,
+  clearTimerSession,
+  markSessionCompleted,
+  generateSessionId,
+  getModeDuration,
+} from './timerPersistence'
 
-const FOCUS_SECONDS = 25 * 60
-const SHORT_BREAK_SECONDS = 5 * 60
-const LONG_BREAK_SECONDS = 20 * 60
-
-type PomodoroMode = 'focus' | 'short-break' | 'long-break'
 type Tab = 'tasks' | 'pomodoro' | 'streaks'
 
 // ─── TimeDisplay ────────────────────────────────────────────────────────────
@@ -77,21 +83,24 @@ function App() {
     return fallback
   }
 
+  // ── Initial restored timer state ──
+  const [restoredTimer] = useState(() => restoreTimerSession())
+
   // ── Tab state ──
   const [activeTab, setActiveTab] = useState<Tab>(() => loadState<Tab>('kanth_tab', 'tasks'))
   const [theme, setTheme] = useState<'dark' | 'light'>(() => loadState<'dark' | 'light'>('kanth_theme', 'dark'))
 
   // ── Pomodoro state ──
-  const [pomodoroMode, setPomodoroMode] = useState<PomodoroMode>(() =>
-    loadState<PomodoroMode>('kanth_pomodoro_mode', 'focus'))
-  const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(() =>
-    loadState<number>('kanth_pomodoro_seconds', FOCUS_SECONDS))
-  const [pomodoroRunning, setPomodoroRunning] = useState(false)
+  const [pomodoroMode, setPomodoroMode] = useState<PomodoroMode>(restoredTimer.mode)
+  const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(restoredTimer.seconds)
+  const [pomodoroRunning, setPomodoroRunning] = useState<boolean>(restoredTimer.isRunning)
   const [focusSessionsCompleted, setFocusSessionsCompleted] = useState<number>(() =>
     loadState<number>('kanth_focus_sessions', 0))
   const sessionsRef = useRef(focusSessionsCompleted)
   const modeRef = useRef<PomodoroMode>(pomodoroMode)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const persistedSessionRef = useRef<PersistedTimerSession>(restoredTimer.session)
+  const startupProcessedRef = useRef(false)
 
   // ── Task state ──
   const [tasks, setTasks] = useState<Task[]>(() => {
@@ -106,8 +115,10 @@ function App() {
       ...t,
     }))
   })
-  const [activeTaskId, setActiveTaskId] = useState<string | null>(() =>
-    loadState<string | null>('kanth_active_task_id', null))
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(() => {
+    if (restoredTimer.taskId) return restoredTimer.taskId
+    return loadState<string | null>('kanth_active_task_id', null)
+  })
   const activeTaskIdRef = useRef(activeTaskId)
 
   // ── Dialogs ──
@@ -121,7 +132,7 @@ function App() {
   // ── Derived ──
   const activeTask = useMemo(() => tasks.find(t => t.id === activeTaskId), [tasks, activeTaskId])
   const pomodoroLabel = pomodoroMode === 'focus' ? 'Focus' : pomodoroMode === 'short-break' ? 'Short Break' : 'Long Break'
-  const pomodoroTotal = pomodoroMode === 'focus' ? FOCUS_SECONDS : pomodoroMode === 'short-break' ? SHORT_BREAK_SECONDS : LONG_BREAK_SECONDS
+  const pomodoroTotal = getModeDuration(pomodoroMode)
   const pomodoroProgress = 1 - pomodoroSeconds / pomodoroTotal
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -132,12 +143,6 @@ function App() {
   useEffect(() => { localStorage.setItem('kanth_active_task_id', JSON.stringify(activeTaskId)) }, [activeTaskId])
   useEffect(() => { localStorage.setItem('kanth_tab', JSON.stringify(activeTab)) }, [activeTab])
   useEffect(() => { localStorage.setItem('kanth_theme', JSON.stringify(theme)) }, [theme])
-  useEffect(() => { localStorage.setItem('kanth_pomodoro_mode', JSON.stringify(pomodoroMode)) }, [pomodoroMode])
-  useEffect(() => {
-    if (!pomodoroRunning) {
-      localStorage.setItem('kanth_pomodoro_seconds', JSON.stringify(pomodoroSeconds))
-    }
-  }, [pomodoroSeconds, pomodoroRunning])
   useEffect(() => { localStorage.setItem('kanth_focus_sessions', JSON.stringify(focusSessionsCompleted)) }, [focusSessionsCompleted])
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -213,6 +218,74 @@ function App() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // Session completion handler
+  // ─────────────────────────────────────────────────────────────────────────
+  const completeSession = ({
+    mode,
+    taskId,
+    isStartupCatchup = false,
+  }: {
+    mode: PomodoroMode
+    taskId: string | null
+    isStartupCatchup?: boolean
+  }) => {
+    if (!isStartupCatchup) {
+      playBell()
+    }
+
+    let nextMode: PomodoroMode = 'focus'
+
+    if (mode === 'focus') {
+      recordContribution()
+      if (taskId) {
+        setTasks(prev => prev.map(t => {
+          if (t.id !== taskId) return t
+          const next = { ...t, completedPomodoros: t.completedPomodoros + 1, remainingSeconds: undefined }
+          // Show completion modal when estimate is reached
+          if (next.completedPomodoros >= next.estimatedPomodoros) {
+            setTimeout(() => {
+              setCompletionModalTask(next)
+            }, 300)
+          }
+          return next
+        }))
+      }
+
+      const completed = sessionsRef.current + 1
+      setFocusSessionsCompleted(completed)
+      sessionsRef.current = completed
+      nextMode = completed % 4 === 0 ? 'long-break' : 'short-break'
+    } else {
+      nextMode = 'focus'
+    }
+
+    const nextDuration = getModeDuration(nextMode)
+    const newSession = clearTimerSession(nextMode, taskId)
+    persistedSessionRef.current = newSession
+
+    modeRef.current = nextMode
+    setPomodoroMode(nextMode)
+    setPomodoroSeconds(nextDuration)
+    setPomodoroRunning(false)
+  }
+
+  // Handle session that expired while away on startup exactly once
+  useEffect(() => {
+    if (startupProcessedRef.current) return
+    startupProcessedRef.current = true
+
+    if (restoredTimer.expiredWhileAway && restoredTimer.expiredSessionId) {
+      if (markSessionCompleted(restoredTimer.expiredSessionId)) {
+        completeSession({
+          mode: restoredTimer.mode,
+          taskId: restoredTimer.taskId,
+          isStartupCatchup: true,
+        })
+      }
+    }
+  }, [])
+
+  // ─────────────────────────────────────────────────────────────────────────
   // Queue helpers
   // ─────────────────────────────────────────────────────────────────────────
   const getNextTask = (currentTasks: Task[]): Task | undefined => {
@@ -235,17 +308,34 @@ function App() {
     if (!id) {
       setActiveTaskId(null)
       setPomodoroRunning(false)
+      const idleSession = clearTimerSession(pomodoroMode, null)
+      persistedSessionRef.current = idleSession
       return
     }
 
     const newTask = tasks.find(t => t.id === id)
     if (!newTask) return
 
+    const seconds = newTask.remainingSeconds !== undefined ? newTask.remainingSeconds : FOCUS_SECONDS
+
     setActiveTaskId(id)
     setPomodoroMode('focus')
     modeRef.current = 'focus'
-    setPomodoroSeconds(newTask.remainingSeconds !== undefined ? newTask.remainingSeconds : FOCUS_SECONDS)
-    // ⚠️ Intentionally NOT calling setPomodoroRunning(true) — user must press Start
+    setPomodoroSeconds(seconds)
+    setPomodoroRunning(false)
+
+    const session: PersistedTimerSession = {
+      sessionId: generateSessionId(),
+      status: 'idle',
+      mode: 'focus',
+      startedAt: null,
+      expectedEndAt: null,
+      remainingSeconds: seconds,
+      taskId: id,
+      lastUpdated: Date.now(),
+    }
+    saveTimerSession(session)
+    persistedSessionRef.current = session
   }
 
   /**
@@ -268,52 +358,49 @@ function App() {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Pomodoro timer tick
+  // Pomodoro timer tick (absolute wall-clock timestamps)
   // ─────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!pomodoroRunning) return
 
-    const intervalId = window.setInterval(() => {
-      setPomodoroSeconds(seconds => {
-        if (seconds > 1) return seconds - 1
+    const tick = () => {
+      const currentSession = persistedSessionRef.current
+      if (!currentSession || currentSession.status !== 'running' || !currentSession.expectedEndAt) {
+        return
+      }
 
-        // Session ended
-        playBell()
-        setTimeout(() => setPomodoroRunning(false), 0)
+      const now = Date.now()
+      const remaining = Math.max(0, Math.ceil((currentSession.expectedEndAt - now) / 1000))
 
-        const nextMode = (() => {
-          if (modeRef.current === 'focus') {
-            recordContribution()
-            const currentId = activeTaskIdRef.current
-            if (currentId) {
-              setTasks(prev => prev.map(t => {
-                if (t.id !== currentId) return t
-                const next = { ...t, completedPomodoros: t.completedPomodoros + 1, remainingSeconds: undefined }
-                // Show completion modal when estimate is reached
-                if (next.completedPomodoros >= next.estimatedPomodoros) {
-                  setTimeout(() => {
-                    setCompletionModalTask(next)
-                  }, 300)
-                }
-                return next
-              }))
-            }
+      setPomodoroSeconds(remaining)
 
-            const completed = sessionsRef.current + 1
-            setFocusSessionsCompleted(completed)
-            sessionsRef.current = completed
-            return completed % 4 === 0 ? 'long-break' : 'short-break'
-          }
-          return 'focus'
-        })()
+      if (remaining <= 0) {
+        const sessId = currentSession.sessionId
+        if (sessId && markSessionCompleted(sessId)) {
+          completeSession({
+            mode: modeRef.current,
+            taskId: activeTaskIdRef.current,
+          })
+        }
+      }
+    }
 
-        modeRef.current = nextMode
-        setPomodoroMode(nextMode)
-        return nextMode === 'focus' ? FOCUS_SECONDS : nextMode === 'short-break' ? SHORT_BREAK_SECONDS : LONG_BREAK_SECONDS
-      })
-    }, 1000)
+    tick()
+    const intervalId = window.setInterval(tick, 250)
 
-    return () => window.clearInterval(intervalId)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        tick()
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    window.addEventListener('focus', handleVisibilityChange)
+
+    return () => {
+      window.clearInterval(intervalId)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('focus', handleVisibilityChange)
+    }
   }, [pomodoroRunning])
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -321,19 +408,33 @@ function App() {
   // ─────────────────────────────────────────────────────────────────────────
   const switchPomodoroMode = (nextMode: PomodoroMode) => {
     unlockAudio()
+    const duration = getModeDuration(nextMode)
+    const newSession = clearTimerSession(nextMode, activeTaskId)
+    persistedSessionRef.current = newSession
+
     setPomodoroMode(nextMode)
     modeRef.current = nextMode
-    setPomodoroSeconds(nextMode === 'focus' ? FOCUS_SECONDS : nextMode === 'short-break' ? SHORT_BREAK_SECONDS : LONG_BREAK_SECONDS)
+    setPomodoroSeconds(duration)
     setPomodoroRunning(false)
   }
 
   const restartPomodoro = () => {
     unlockAudio()
-    setPomodoroSeconds(pomodoroTotal)
+    const duration = getModeDuration(pomodoroMode)
+    const newSession = clearTimerSession(pomodoroMode, activeTaskId)
+    persistedSessionRef.current = newSession
+
+    setPomodoroSeconds(duration)
     setPomodoroRunning(false)
   }
 
   const skipPomodoro = () => {
+    unlockAudio()
+    const currentSess = persistedSessionRef.current
+    if (currentSess?.sessionId) {
+      markSessionCompleted(currentSess.sessionId)
+    }
+
     if (pomodoroMode === 'focus') {
       recordContribution()
       if (activeTaskIdRef.current) {
@@ -344,29 +445,87 @@ function App() {
       const completed = focusSessionsCompleted + 1
       setFocusSessionsCompleted(completed)
       sessionsRef.current = completed
-      switchPomodoroMode(completed % 4 === 0 ? 'long-break' : 'short-break')
+      const nextMode = completed % 4 === 0 ? 'long-break' : 'short-break'
+      const nextDuration = getModeDuration(nextMode)
+      const newSession = clearTimerSession(nextMode, activeTaskIdRef.current)
+      persistedSessionRef.current = newSession
+
+      setPomodoroMode(nextMode)
+      modeRef.current = nextMode
+      setPomodoroSeconds(nextDuration)
+      setPomodoroRunning(false)
     } else {
       // Skip break → go back to focus
       const nextId = activeTaskIdRef.current
+      const nextDuration = getModeDuration('focus')
+      const newSession = clearTimerSession('focus', nextId)
+      persistedSessionRef.current = newSession
+
+      setPomodoroMode('focus')
+      modeRef.current = 'focus'
       if (nextId) {
         loadTask(nextId)
       } else {
-        switchPomodoroMode('focus')
+        setPomodoroSeconds(nextDuration)
+        setPomodoroRunning(false)
       }
     }
   }
 
   const togglePomodoro = () => {
     unlockAudio()
-    if (!pomodoroRunning && pomodoroMode === 'focus' && !activeTaskId) {
-      const next = tasks.filter(t => !t.completed).sort((a, b) => a.queueOrder - b.queueOrder)[0]
-      if (next) {
-        loadTask(next.id)
-        setPomodoroRunning(true)
-        return
+
+    if (!pomodoroRunning) {
+      let targetTaskId = activeTaskId
+      if (pomodoroMode === 'focus' && !activeTaskId) {
+        const next = tasks.filter(t => !t.completed).sort((a, b) => a.queueOrder - b.queueOrder)[0]
+        if (next) {
+          targetTaskId = next.id
+          loadTask(next.id)
+        }
       }
+
+      const now = Date.now()
+      const expectedEndAt = now + pomodoroSeconds * 1000
+      const sessId = persistedSessionRef.current?.sessionId || generateSessionId()
+
+      const runningSession: PersistedTimerSession = {
+        sessionId: sessId,
+        status: 'running',
+        mode: pomodoroMode,
+        startedAt: persistedSessionRef.current?.startedAt || now,
+        expectedEndAt,
+        remainingSeconds: pomodoroSeconds,
+        taskId: targetTaskId,
+        lastUpdated: now,
+      }
+
+      saveTimerSession(runningSession)
+      persistedSessionRef.current = runningSession
+      setPomodoroRunning(true)
+    } else {
+      const now = Date.now()
+      let remaining = pomodoroSeconds
+      if (persistedSessionRef.current?.expectedEndAt) {
+        remaining = Math.max(0, Math.ceil((persistedSessionRef.current.expectedEndAt - now) / 1000))
+      }
+
+      const pausedSession: PersistedTimerSession = {
+        sessionId: persistedSessionRef.current?.sessionId || generateSessionId(),
+        status: 'paused',
+        mode: pomodoroMode,
+        startedAt: persistedSessionRef.current?.startedAt || null,
+        expectedEndAt: null,
+        remainingSeconds: remaining,
+        taskId: activeTaskId,
+        lastUpdated: now,
+      }
+
+      saveTimerSession(pausedSession)
+      persistedSessionRef.current = pausedSession
+      setPomodoroSeconds(remaining)
+      setPomodoroRunning(false)
     }
-    setPomodoroRunning(r => !r)
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -376,6 +535,8 @@ function App() {
     setPomodoroRunning(false)
     setCompletionModalTask(task)
     setActiveTaskId(null)
+    const session = clearTimerSession(pomodoroMode, null)
+    persistedSessionRef.current = session
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -397,6 +558,21 @@ function App() {
   const handleCompletionBreak = () => {
     setCompletionModalTask(null)
     switchPomodoroMode('short-break')
+    const now = Date.now()
+    const duration = getModeDuration('short-break')
+    const runningSession: PersistedTimerSession = {
+      sessionId: generateSessionId(),
+      status: 'running',
+      mode: 'short-break',
+      startedAt: now,
+      expectedEndAt: now + duration * 1000,
+      remainingSeconds: duration,
+      taskId: null,
+      lastUpdated: now,
+    }
+    saveTimerSession(runningSession)
+    persistedSessionRef.current = runningSession
+    setPomodoroSeconds(duration)
     setPomodoroRunning(true)
   }
 

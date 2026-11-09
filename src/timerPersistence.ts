@@ -1,0 +1,287 @@
+import { PersistedTimerSession, PomodoroMode, SessionStatus } from './types';
+
+export const FOCUS_SECONDS = 25 * 60;
+export const SHORT_BREAK_SECONDS = 5 * 60;
+export const LONG_BREAK_SECONDS = 20 * 60;
+
+export const STORAGE_KEY_TIMER_SESSION = 'kanth_timer_session';
+export const STORAGE_KEY_COMPLETED_SESSIONS = 'kanth_completed_session_ids';
+export const STORAGE_KEY_POMODORO_MODE = 'kanth_pomodoro_mode';
+export const STORAGE_KEY_POMODORO_SECONDS = 'kanth_pomodoro_seconds';
+
+function getStorage(): Storage | null {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      return window.localStorage;
+    }
+    if (typeof globalThis !== 'undefined' && (globalThis as unknown as { localStorage: Storage }).localStorage) {
+      return (globalThis as unknown as { localStorage: Storage }).localStorage;
+    }
+  } catch {
+    /* ignore storage access error */
+  }
+  return null;
+}
+
+export function getModeDuration(mode: PomodoroMode): number {
+  switch (mode) {
+    case 'focus':
+      return FOCUS_SECONDS;
+    case 'short-break':
+      return SHORT_BREAK_SECONDS;
+    case 'long-break':
+      return LONG_BREAK_SECONDS;
+  }
+}
+
+export function generateSessionId(): string {
+  return `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
+export function getCompletedSessionIds(): string[] {
+  const storage = getStorage();
+  if (!storage) return [];
+  try {
+    const raw = storage.getItem(STORAGE_KEY_COMPLETED_SESSIONS);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+export function isSessionCompleted(sessionId: string): boolean {
+  if (!sessionId) return false;
+  return getCompletedSessionIds().includes(sessionId);
+}
+
+export function markSessionCompleted(sessionId: string): boolean {
+  if (!sessionId) return false;
+  const storage = getStorage();
+  if (!storage) return false;
+
+  const completed = getCompletedSessionIds();
+  if (completed.includes(sessionId)) {
+    return false; // Already completed — prevent duplicate completion
+  }
+
+  completed.push(sessionId);
+  // Keep the list bounded to last 100 sessions
+  if (completed.length > 100) {
+    completed.splice(0, completed.length - 100);
+  }
+
+  try {
+    storage.setItem(STORAGE_KEY_COMPLETED_SESSIONS, JSON.stringify(completed));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function isValidTimerSession(data: unknown): data is PersistedTimerSession {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Partial<PersistedTimerSession>;
+
+  if (typeof obj.sessionId !== 'string' || !obj.sessionId) return false;
+  if (obj.status !== 'idle' && obj.status !== 'running' && obj.status !== 'paused') return false;
+  if (obj.mode !== 'focus' && obj.mode !== 'short-break' && obj.mode !== 'long-break') return false;
+  if (typeof obj.remainingSeconds !== 'number' || isNaN(obj.remainingSeconds) || obj.remainingSeconds < 0) return false;
+  if (obj.startedAt !== null && (typeof obj.startedAt !== 'number' || isNaN(obj.startedAt))) return false;
+  if (obj.expectedEndAt !== null && (typeof obj.expectedEndAt !== 'number' || isNaN(obj.expectedEndAt))) return false;
+  if (obj.taskId !== null && typeof obj.taskId !== 'string') return false;
+  if (typeof obj.lastUpdated !== 'number' || isNaN(obj.lastUpdated)) return false;
+
+  return true;
+}
+
+export function saveTimerSession(session: PersistedTimerSession): void {
+  const storage = getStorage();
+  if (!storage) return;
+
+  try {
+    session.lastUpdated = Date.now();
+    storage.setItem(STORAGE_KEY_TIMER_SESSION, JSON.stringify(session));
+
+    // Synchronize legacy keys for backward-compatibility with existing components/storage
+    storage.setItem(STORAGE_KEY_POMODORO_MODE, JSON.stringify(session.mode));
+    if (session.status !== 'running') {
+      storage.setItem(STORAGE_KEY_POMODORO_SECONDS, JSON.stringify(session.remainingSeconds));
+    }
+  } catch {
+    /* ignore storage quota errors */
+  }
+}
+
+export function clearTimerSession(
+  mode: PomodoroMode = 'focus',
+  taskId: string | null = null
+): PersistedTimerSession {
+  const duration = getModeDuration(mode);
+  const idleSession: PersistedTimerSession = {
+    sessionId: generateSessionId(),
+    status: 'idle',
+    mode,
+    startedAt: null,
+    expectedEndAt: null,
+    remainingSeconds: duration,
+    taskId,
+    lastUpdated: Date.now(),
+  };
+
+  saveTimerSession(idleSession);
+  return idleSession;
+}
+
+export interface RestoredTimerResult {
+  session: PersistedTimerSession;
+  expiredWhileAway: boolean;
+  expiredSessionId: string | null;
+  mode: PomodoroMode;
+  seconds: number;
+  isRunning: boolean;
+  taskId: string | null;
+}
+
+export function restoreTimerSession(now = Date.now()): RestoredTimerResult {
+  const storage = getStorage();
+  let session: PersistedTimerSession | null = null;
+
+  if (storage) {
+    try {
+      const raw = storage.getItem(STORAGE_KEY_TIMER_SESSION);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (isValidTimerSession(parsed)) {
+          session = parsed;
+        }
+      }
+    } catch {
+      session = null;
+    }
+  }
+
+  // Fallback to legacy keys if no valid session found in localStorage
+  if (!session) {
+    let legacyMode: PomodoroMode = 'focus';
+    let legacySeconds = FOCUS_SECONDS;
+    let legacyTaskId: string | null = null;
+
+    if (storage) {
+      try {
+        const savedMode = storage.getItem(STORAGE_KEY_POMODORO_MODE);
+        if (savedMode) {
+          const m = JSON.parse(savedMode);
+          if (m === 'focus' || m === 'short-break' || m === 'long-break') legacyMode = m;
+        }
+      } catch {
+        /* ignore */
+      }
+
+      try {
+        const savedSecs = storage.getItem(STORAGE_KEY_POMODORO_SECONDS);
+        if (savedSecs) {
+          const s = JSON.parse(savedSecs);
+          if (typeof s === 'number' && !isNaN(s) && s > 0) legacySeconds = s;
+        }
+      } catch {
+        /* ignore */
+      }
+
+      try {
+        const savedTaskId = storage.getItem('kanth_active_task_id');
+        if (savedTaskId) {
+          legacyTaskId = JSON.parse(savedTaskId);
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    session = {
+      sessionId: generateSessionId(),
+      status: 'idle',
+      mode: legacyMode,
+      startedAt: null,
+      expectedEndAt: null,
+      remainingSeconds: legacySeconds,
+      taskId: legacyTaskId,
+      lastUpdated: now,
+    };
+    saveTimerSession(session);
+  }
+
+  // Handle paused session
+  if (session.status === 'paused') {
+    return {
+      session,
+      expiredWhileAway: false,
+      expiredSessionId: null,
+      mode: session.mode,
+      seconds: session.remainingSeconds,
+      isRunning: false,
+      taskId: session.taskId,
+    };
+  }
+
+  // Handle running session
+  if (session.status === 'running') {
+    if (session.expectedEndAt === null || typeof session.expectedEndAt !== 'number') {
+      // Degraded session with missing deadline: convert to paused
+      session.status = 'paused';
+      saveTimerSession(session);
+      return {
+        session,
+        expiredWhileAway: false,
+        expiredSessionId: null,
+        mode: session.mode,
+        seconds: session.remainingSeconds,
+        isRunning: false,
+        taskId: session.taskId,
+      };
+    }
+
+    const remaining = Math.ceil((session.expectedEndAt - now) / 1000);
+
+    if (remaining > 0) {
+      // Session is still active!
+      session.remainingSeconds = remaining;
+      return {
+        session,
+        expiredWhileAway: false,
+        expiredSessionId: null,
+        mode: session.mode,
+        seconds: remaining,
+        isRunning: true,
+        taskId: session.taskId,
+      };
+    } else {
+      // Session deadline passed while away
+      const expiredId = session.sessionId;
+      const alreadyCompleted = isSessionCompleted(expiredId);
+
+      return {
+        session,
+        expiredWhileAway: !alreadyCompleted,
+        expiredSessionId: expiredId,
+        mode: session.mode,
+        seconds: 0,
+        isRunning: false,
+        taskId: session.taskId,
+      };
+    }
+  }
+
+  // Handle idle session
+  return {
+    session,
+    expiredWhileAway: false,
+    expiredSessionId: null,
+    mode: session.mode,
+    seconds: session.remainingSeconds || getModeDuration(session.mode),
+    isRunning: false,
+    taskId: session.taskId,
+  };
+}
+
