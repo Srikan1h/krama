@@ -3,6 +3,13 @@ export type TaskStatus = "idle" | "active" | "completed";
 export type PomodoroMode = 'focus' | 'short-break' | 'long-break';
 export type SessionStatus = 'idle' | 'running' | 'paused';
 
+export interface PomodoroSettings {
+  focusDuration: number;      // in minutes (e.g. 25)
+  shortBreakDuration: number; // in minutes (e.g. 5)
+  longBreakDuration: number;  // in minutes (e.g. 15)
+  longBreakInterval: number;  // cycle count (e.g. 4)
+}
+
 export interface PersistedTimerSession {
   sessionId: string;
   status: SessionStatus;

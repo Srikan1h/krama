@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState, ReactNode } from 'react'
-import { Moon, Pause, Play, RefreshCcw, SkipForward, Sun } from 'lucide-react'
+import { Moon, Pause, Play, RefreshCcw, Settings, SkipForward, Sun } from 'lucide-react'
 import TaskManagement from './components/TaskManagement'
 import BottomNav from './components/BottomNav'
 import CurrentTaskPanel from './components/CurrentTaskPanel'
 import TaskCompletionModal from './components/TaskCompletionModal'
 import SwitchTaskDialog from './components/SwitchTaskDialog'
+import SettingsModal from './components/SettingsModal'
 import StreaksScreen from './components/StreaksScreen'
-import { Task, PomodoroMode, PersistedTimerSession } from './types'
+import { Task, PomodoroMode, PomodoroSettings, PersistedTimerSession } from './types'
 import {
-  FOCUS_SECONDS,
-  SHORT_BREAK_SECONDS,
-  LONG_BREAK_SECONDS,
+  loadSettings,
+  saveSettings,
   restoreTimerSession,
   saveTimerSession,
   clearTimerSession,
@@ -90,6 +90,12 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>(() => loadState<Tab>('kanth_tab', 'tasks'))
   const [theme, setTheme] = useState<'dark' | 'light'>(() => loadState<'dark' | 'light'>('kanth_theme', 'dark'))
 
+  // ── Settings state ──
+  const [settings, setSettings] = useState<PomodoroSettings>(() => loadSettings())
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const settingsRef = useRef(settings)
+  useEffect(() => { settingsRef.current = settings }, [settings])
+
   // ── Pomodoro state ──
   const [pomodoroMode, setPomodoroMode] = useState<PomodoroMode>(restoredTimer.mode)
   const [pomodoroSeconds, setPomodoroSeconds] = useState<number>(restoredTimer.seconds)
@@ -132,8 +138,29 @@ function App() {
   // ── Derived ──
   const activeTask = useMemo(() => tasks.find(t => t.id === activeTaskId), [tasks, activeTaskId])
   const pomodoroLabel = pomodoroMode === 'focus' ? 'Focus' : pomodoroMode === 'short-break' ? 'Short Break' : 'Long Break'
-  const pomodoroTotal = getModeDuration(pomodoroMode)
+  const pomodoroTotal = getModeDuration(pomodoroMode, settings)
   const pomodoroProgress = 1 - pomodoroSeconds / pomodoroTotal
+
+  // ── Settings Save Handler ──
+  const handleSaveSettings = (newSettings: PomodoroSettings) => {
+    saveSettings(newSettings)
+    setSettings(newSettings)
+    settingsRef.current = newSettings
+
+    // If timer is idle, update duration to match new configured settings immediately
+    const currentSession = persistedSessionRef.current
+    if (!pomodoroRunning && currentSession?.status === 'idle') {
+      const newDuration = getModeDuration(pomodoroMode, newSettings)
+      setPomodoroSeconds(newDuration)
+      const updatedSession: PersistedTimerSession = {
+        ...currentSession,
+        remainingSeconds: newDuration,
+        lastUpdated: Date.now(),
+      }
+      saveTimerSession(updatedSession)
+      persistedSessionRef.current = updatedSession
+    }
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // Persistence effects
@@ -254,13 +281,14 @@ function App() {
       const completed = sessionsRef.current + 1
       setFocusSessionsCompleted(completed)
       sessionsRef.current = completed
-      nextMode = completed % 4 === 0 ? 'long-break' : 'short-break'
+      const interval = settingsRef.current.longBreakInterval || 4
+      nextMode = completed % interval === 0 ? 'long-break' : 'short-break'
     } else {
       nextMode = 'focus'
     }
 
-    const nextDuration = getModeDuration(nextMode)
-    const newSession = clearTimerSession(nextMode, taskId)
+    const nextDuration = getModeDuration(nextMode, settingsRef.current)
+    const newSession = clearTimerSession(nextMode, taskId, settingsRef.current)
     persistedSessionRef.current = newSession
 
     modeRef.current = nextMode
@@ -308,7 +336,7 @@ function App() {
     if (!id) {
       setActiveTaskId(null)
       setPomodoroRunning(false)
-      const idleSession = clearTimerSession(pomodoroMode, null)
+      const idleSession = clearTimerSession(pomodoroMode, null, settingsRef.current)
       persistedSessionRef.current = idleSession
       return
     }
@@ -316,7 +344,8 @@ function App() {
     const newTask = tasks.find(t => t.id === id)
     if (!newTask) return
 
-    const seconds = newTask.remainingSeconds !== undefined ? newTask.remainingSeconds : FOCUS_SECONDS
+    const defaultFocusSecs = getModeDuration('focus', settingsRef.current)
+    const seconds = newTask.remainingSeconds !== undefined ? newTask.remainingSeconds : defaultFocusSecs
 
     setActiveTaskId(id)
     setPomodoroMode('focus')
@@ -408,8 +437,8 @@ function App() {
   // ─────────────────────────────────────────────────────────────────────────
   const switchPomodoroMode = (nextMode: PomodoroMode) => {
     unlockAudio()
-    const duration = getModeDuration(nextMode)
-    const newSession = clearTimerSession(nextMode, activeTaskId)
+    const duration = getModeDuration(nextMode, settingsRef.current)
+    const newSession = clearTimerSession(nextMode, activeTaskId, settingsRef.current)
     persistedSessionRef.current = newSession
 
     setPomodoroMode(nextMode)
@@ -420,8 +449,8 @@ function App() {
 
   const restartPomodoro = () => {
     unlockAudio()
-    const duration = getModeDuration(pomodoroMode)
-    const newSession = clearTimerSession(pomodoroMode, activeTaskId)
+    const duration = getModeDuration(pomodoroMode, settingsRef.current)
+    const newSession = clearTimerSession(pomodoroMode, activeTaskId, settingsRef.current)
     persistedSessionRef.current = newSession
 
     setPomodoroSeconds(duration)
@@ -445,9 +474,10 @@ function App() {
       const completed = focusSessionsCompleted + 1
       setFocusSessionsCompleted(completed)
       sessionsRef.current = completed
-      const nextMode = completed % 4 === 0 ? 'long-break' : 'short-break'
-      const nextDuration = getModeDuration(nextMode)
-      const newSession = clearTimerSession(nextMode, activeTaskIdRef.current)
+      const interval = settingsRef.current.longBreakInterval || 4
+      const nextMode = completed % interval === 0 ? 'long-break' : 'short-break'
+      const nextDuration = getModeDuration(nextMode, settingsRef.current)
+      const newSession = clearTimerSession(nextMode, activeTaskIdRef.current, settingsRef.current)
       persistedSessionRef.current = newSession
 
       setPomodoroMode(nextMode)
@@ -457,8 +487,8 @@ function App() {
     } else {
       // Skip break → go back to focus
       const nextId = activeTaskIdRef.current
-      const nextDuration = getModeDuration('focus')
-      const newSession = clearTimerSession('focus', nextId)
+      const nextDuration = getModeDuration('focus', settingsRef.current)
+      const newSession = clearTimerSession('focus', nextId, settingsRef.current)
       persistedSessionRef.current = newSession
 
       setPomodoroMode('focus')
@@ -535,7 +565,7 @@ function App() {
     setPomodoroRunning(false)
     setCompletionModalTask(task)
     setActiveTaskId(null)
-    const session = clearTimerSession(pomodoroMode, null)
+    const session = clearTimerSession(pomodoroMode, null, settingsRef.current)
     persistedSessionRef.current = session
   }
 
@@ -559,7 +589,7 @@ function App() {
     setCompletionModalTask(null)
     switchPomodoroMode('short-break')
     const now = Date.now()
-    const duration = getModeDuration('short-break')
+    const duration = getModeDuration('short-break', settingsRef.current)
     const runningSession: PersistedTimerSession = {
       sessionId: generateSessionId(),
       status: 'running',
@@ -601,15 +631,26 @@ function App() {
         <div className="app-bar-brand">
           <span className="app-bar-title">Krama</span>
         </div>
-        <button
-          className="theme-button"
-          type="button"
-          aria-label={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
-          onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
-        >
-          {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+        <div className="app-bar-actions">
+          <button
+            className="theme-button"
+            type="button"
+            aria-label="Settings"
+            title="Settings"
+            onClick={() => setIsSettingsOpen(true)}
+          >
+            <Settings size={18} />
+          </button>
+          <button
+            className="theme-button"
+            type="button"
+            aria-label={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
+            onClick={() => setTheme(t => t === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+        </div>
       </header>
 
       {/* ── Tab Content ─────────────────────────────────────────────── */}
@@ -675,9 +716,9 @@ function App() {
               <div className="progress-line" aria-hidden="true" style={{ '--progress': `${pomodoroProgress * 100}%` } as React.CSSProperties} />
 
               {/* Cycle dots */}
-              <div className="cycle-indicator" aria-label={`Cycle: ${pomodoroMode === 'long-break' ? 4 : (focusSessionsCompleted % 4)} of 4`}>
-                {[1, 2, 3, 4].map(step => {
-                  const pos = focusSessionsCompleted % 4
+              <div className="cycle-indicator" aria-label={`Cycle: ${pomodoroMode === 'long-break' ? settings.longBreakInterval : (focusSessionsCompleted % settings.longBreakInterval)} of ${settings.longBreakInterval}`}>
+                {Array.from({ length: settings.longBreakInterval }, (_, i) => i + 1).map(step => {
+                  const pos = focusSessionsCompleted % settings.longBreakInterval
                   const isCompleted = pomodoroMode === 'long-break' || pos >= step
                   const isActive = pomodoroMode === 'focus' && pos + 1 === step
                   return (
@@ -727,6 +768,14 @@ function App() {
           onBreak={handleCompletionBreak}
         />
       )}
+
+      {/* Settings Modal */}
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSave={handleSaveSettings}
+      />
 
       {/* ── Bottom Nav ──────────────────────────────────────────────── */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />

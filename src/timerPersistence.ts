@@ -1,9 +1,17 @@
-import { PersistedTimerSession, PomodoroMode, SessionStatus } from './types';
+import { PersistedTimerSession, PomodoroMode, PomodoroSettings, SessionStatus } from './types';
 
-export const FOCUS_SECONDS = 25 * 60;
-export const SHORT_BREAK_SECONDS = 5 * 60;
-export const LONG_BREAK_SECONDS = 20 * 60;
+export const DEFAULT_SETTINGS: PomodoroSettings = {
+  focusDuration: 25,
+  shortBreakDuration: 5,
+  longBreakDuration: 15,
+  longBreakInterval: 4,
+};
 
+export const FOCUS_SECONDS = DEFAULT_SETTINGS.focusDuration * 60;
+export const SHORT_BREAK_SECONDS = DEFAULT_SETTINGS.shortBreakDuration * 60;
+export const LONG_BREAK_SECONDS = DEFAULT_SETTINGS.longBreakDuration * 60;
+
+export const STORAGE_KEY_SETTINGS = 'kanth_settings';
 export const STORAGE_KEY_TIMER_SESSION = 'kanth_timer_session';
 export const STORAGE_KEY_COMPLETED_SESSIONS = 'kanth_completed_session_ids';
 export const STORAGE_KEY_POMODORO_MODE = 'kanth_pomodoro_mode';
@@ -23,14 +31,53 @@ function getStorage(): Storage | null {
   return null;
 }
 
-export function getModeDuration(mode: PomodoroMode): number {
+export function isValidSettings(data: unknown): data is PomodoroSettings {
+  if (!data || typeof data !== 'object') return false;
+  const obj = data as Partial<PomodoroSettings>;
+  if (typeof obj.focusDuration !== 'number' || isNaN(obj.focusDuration) || obj.focusDuration < 1 || obj.focusDuration > 120) return false;
+  if (typeof obj.shortBreakDuration !== 'number' || isNaN(obj.shortBreakDuration) || obj.shortBreakDuration < 1 || obj.shortBreakDuration > 60) return false;
+  if (typeof obj.longBreakDuration !== 'number' || isNaN(obj.longBreakDuration) || obj.longBreakDuration < 1 || obj.longBreakDuration > 90) return false;
+  if (typeof obj.longBreakInterval !== 'number' || isNaN(obj.longBreakInterval) || obj.longBreakInterval < 1 || obj.longBreakInterval > 24) return false;
+  return true;
+}
+
+export function loadSettings(): PomodoroSettings {
+  const storage = getStorage();
+  if (storage) {
+    try {
+      const raw = storage.getItem(STORAGE_KEY_SETTINGS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (isValidSettings(parsed)) {
+          return parsed;
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  return { ...DEFAULT_SETTINGS };
+}
+
+export function saveSettings(settings: PomodoroSettings): void {
+  const storage = getStorage();
+  if (!storage) return;
+  try {
+    storage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getModeDuration(mode: PomodoroMode, settings?: PomodoroSettings): number {
+  const s = settings || DEFAULT_SETTINGS;
   switch (mode) {
     case 'focus':
-      return FOCUS_SECONDS;
+      return s.focusDuration * 60;
     case 'short-break':
-      return SHORT_BREAK_SECONDS;
+      return s.shortBreakDuration * 60;
     case 'long-break':
-      return LONG_BREAK_SECONDS;
+      return s.longBreakDuration * 60;
   }
 }
 
@@ -116,9 +163,10 @@ export function saveTimerSession(session: PersistedTimerSession): void {
 
 export function clearTimerSession(
   mode: PomodoroMode = 'focus',
-  taskId: string | null = null
+  taskId: string | null = null,
+  settings?: PomodoroSettings
 ): PersistedTimerSession {
-  const duration = getModeDuration(mode);
+  const duration = getModeDuration(mode, settings);
   const idleSession: PersistedTimerSession = {
     sessionId: generateSessionId(),
     status: 'idle',
