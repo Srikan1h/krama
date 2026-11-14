@@ -633,29 +633,45 @@ button {
 .streaks-screen {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 18px;
 }
 
 /* 1. Today hero */
 .streaks-hero {
-  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0 2px;
 }
 
-.streaks-hero-value {
-  /* Use a fixed-feeling size — vw is unreliable with a capped container */
-  font-size: clamp(3rem, 10vw, 5rem);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--text);
-  line-height: 1;
-  letter-spacing: -0.02em;
+.streaks-hero-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .streaks-hero-label {
   font-size: 0.8rem;
   color: var(--muted);
-  margin-top: 6px;
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.streaks-hero-date {
+  font-size: 0.75rem;
+  color: var(--text-2);
+  font-weight: 500;
+}
+
+.streaks-hero-value {
+  font-size: clamp(2rem, 6.5vw, 2.75rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 /* 2. Activity overview — inline row */
@@ -663,7 +679,7 @@ button {
   display: flex;
   align-items: stretch;
   gap: 0;
-  padding: var(--card-padding-y) var(--card-padding-x);
+  padding: calc(var(--card-padding-y) * 0.75) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
   border: none;
@@ -672,7 +688,7 @@ button {
 .streaks-overview-item {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
   flex: 1;
   padding: 0 0 0 4px;
 }
@@ -682,11 +698,11 @@ button {
 }
 
 .streaks-overview-value {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text);
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .streaks-overview-label {
@@ -713,7 +729,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: var(--card-padding-y) var(--card-padding-x);
+  padding: calc(var(--card-padding-y) * 0.75) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
 }
@@ -724,14 +740,14 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
-  margin: 0 0 12px;
+  margin: 0 0 8px;
 }
 
 .streaks-stat-row {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 11px 0;
+  padding: 8px 0;
   border-bottom: 1px solid var(--hairline);
   gap: 12px;
 }
@@ -765,10 +781,10 @@ button {
   display: flex;
   flex-direction: column;
   width: 100%;
-  padding: var(--card-padding-y) var(--card-padding-x);
+  padding: calc(var(--card-padding-y) * 0.75) var(--card-padding-x);
   border-radius: 12px;
   background: var(--surface);
-  gap: 10px;
+  gap: 8px;
   position: relative;
 }
 

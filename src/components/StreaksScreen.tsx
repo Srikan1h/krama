@@ -99,13 +99,24 @@ export default function StreaksScreen({ activityData, tasks }: StreaksScreenProp
     { label: 'Tasks completed', value: String(completedCount) },
   ];
 
+  const formattedDate = useMemo(() => {
+    return new Date().toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  }, []);
+
   return (
     <div className="streaks-screen">
 
       {/* 1. Today hero */}
       <section className="streaks-hero" aria-label="Today's focus">
+        <div className="streaks-hero-header">
+          <span className="streaks-hero-label">Today's focus</span>
+          <span className="streaks-hero-date">{formattedDate}</span>
+        </div>
         <div className="streaks-hero-value">{fmt(todayMinutes)}</div>
-        <div className="streaks-hero-label">Today's focus</div>
       </section>
 
       {/* 2. Activity overview — inline row, no cards */}
